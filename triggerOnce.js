@@ -50,8 +50,17 @@
     this.ready = function() { return !triggered; }
   }
   
-  $.triggerOnce = function(period, action, id, suppress, doDefer) {
-    if (action === undefined && id === undefined) {
+
+  // Attaches to jQuery if defined, otherwise
+  // to the window object
+  if (jQuery !== undefined) {
+    var attach = jQuery;
+  } else {
+    var attach = window;
+  }
+
+  attach.triggerOnce = function(period, action, id, suppress, doDefer) {
+    if (arguments.length == 1) {
       // then assume that this is being called
       // with the alternate signature $.triggerOnce(id)
       id = period;
