@@ -1,0 +1,124 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+    <title>triggerOnce Plugin</title>
+
+    <style type="text/css" media="screen">
+      .timeline {
+        height:30px;
+      }
+      .timeline.timeline-event {
+        position:absolute;
+        border:1px solid black;
+
+        width:10px;
+        height:10px;
+        overflow:hidden;
+        color:white;
+      }
+    </style>
+
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script type="text/javascript">
+      // Load up my local version of jQuery if the Google CVN is down.
+      window.jQuery || 
+      document.write("<script type=\'text\/javascript\' src=\'\/main_scripts\/jquery.js\'><\/script>");
+      </script>
+      <script src="triggerOnce.js" type="text/javascript" charset="utf-8"></script>
+      <script src="js/timeline.js" type="text/javascript" charset="utf-8"></script>
+      <script type="text/javascript" charset="utf-8">
+        $(document).ready(function() {
+            var withTriggerOnceCount = 0;
+            var withoutTriggerOnceCount = 0;
+
+            var triggerOncePeriod = 500; // 500 ms
+
+            function updateCounts() {
+            $('#with').text(withTriggerOnceCount.toString()); 
+            $('#without').text(withoutTriggerOnceCount.toString()); 
+            $('#interval-text').text(triggerOncePeriod.toString()); 
+            $('#savings').text(Math.round((withoutTriggerOnceCount-withTriggerOnceCount)/withoutTriggerOnceCount * 100.0,2));
+            }
+
+            $.triggerOnce(triggerOncePeriod, function() {
+              withTriggerOnceCount += 1;
+              $('#with-timeline').trigger('addEvent', {category: 'with', color: 'blue'});
+              updateCounts();
+              }, 'with', false);
+            $.triggerOnce(triggerOncePeriod, function() {
+              $('#defer-timeline').trigger('addEvent', {category: 'defer', color: 'green'});
+              }, 'defer', false, true);
+            $('#box').keydown(function() {
+              withoutTriggerOnceCount += 1;
+              $('#without-timeline').trigger('addEvent', {category: 'without', color: 'red'});
+              $.triggerOnce('with');
+              $.triggerOnce('defer');
+              updateCounts();
+              });
+
+            $.triggerOnce(triggerOncePeriod, function() {
+                console.log('Second');
+                updateCounts();
+                }, 'love');
+            $('#second-box').keydown(function() {
+                $.triggerOnce('love');
+                });
+
+            $('#interval').change(function() {
+                if (Onces['with']) {
+                Onces['with'].period = parseInt($(this).val());
+                Onces['with'].reset();
+                } else {
+                triggerOncePeriod = parseInt($(this).val());
+                }
+                updateCounts();
+                });
+            $('#interval').val(triggerOncePeriod.toString());
+            $('#reset').click(function() {
+                withTriggerOnceCount = 0;
+                withoutTriggerOnceCount = 0;
+                updateCounts();
+                });
+
+            $('#with-timeline').timeline();
+            $('#without-timeline').timeline();
+            $('#defer-timeline').timeline();
+        });
+      </script>
+    </head>
+
+    <body>
+      <h1>triggerOnce Plugin</h1>
+      <div>
+        <label for='box'>Try typing into this autocomplete box...</label>
+        <input type='text' id='box'/>
+        <input type='button' id='reset' value='Reset counts...'/>
+        <label for='interval'>triggerOnce interval:</label>
+        <input type='text' id='interval' /> ms
+
+        <input type='text' id='second-box'/>
+
+        <table>
+          <thead>
+            <tr>
+              <th>With triggerOnce (at a <span id='interval-text'></span>ms interval)</th>
+              <th>Without triggerOnce</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span id='with'></span> AJAX queries. A total of <span id='savings'></span>% savings!</td>
+              <td><span id='without'></span> AJAX queries.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <button id='addEvent'>Add Event...</button>
+
+        <div id='with-timeline' class='timeline'></div>
+        <div id='defer-timeline' class='timeline'></div>
+        <div id='without-timeline' class='timeline'></div>
+      </body>
+    </html>
